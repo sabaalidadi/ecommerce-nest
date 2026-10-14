@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  Relation
 } from 'typeorm';
+import { Address } from '../../addresses/entities/address.entity.js';
 
 export enum UserRole {
   CUSTOMER = 'customer',
@@ -39,6 +42,9 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany('Address', (address: Address) => address.user)
+  addresses: Relation<Address>[];
 
   @CreateDateColumn()
   createdAt: Date;
