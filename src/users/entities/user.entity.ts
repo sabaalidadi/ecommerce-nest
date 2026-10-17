@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Relation
+  Relation,
+  ManyToMany,
+  JoinTable
 } from 'typeorm';
 import { Address } from '../../addresses/entities/address.entity.js';
 import { Ticket } from '../../tickets/entities/ticket.entity.js';
-
+import { Product } from '../../products/entities/product.entity.js';
 
 export enum UserRole {
   CUSTOMER = 'customer',
@@ -50,6 +52,20 @@ export class User {
 
   @OneToMany(() => Ticket, (ticket) => ticket.user)
   tickets: Ticket[];
+
+  @ManyToMany(() => Product, (product) => product.bookmarkedBy)
+  @JoinTable({
+    name: 'bookmarks',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'product_id',
+      referencedColumnName: 'id',
+    },
+  })
+  bookmarks: Product[];
 
 
   @CreateDateColumn()
