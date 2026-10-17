@@ -8,6 +8,8 @@ import {
   Relation
 } from 'typeorm';
 import { Address } from '../../addresses/entities/address.entity.js';
+import { Ticket } from '../../tickets/entities/ticket.entity.js';
+
 
 export enum UserRole {
   CUSTOMER = 'customer',
@@ -45,6 +47,10 @@ export class User {
 
   @OneToMany('Address', (address: Address) => address.user)
   addresses: Relation<Address>[];
+
+  @OneToMany(() => Ticket, (ticket) => ticket.user)
+  tickets: Ticket[];
+
 
   @CreateDateColumn()
   createdAt: Date;
