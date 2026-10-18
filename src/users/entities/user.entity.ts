@@ -12,6 +12,7 @@ import {
 import { Address } from '../../addresses/entities/address.entity.js';
 import { Ticket } from '../../tickets/entities/ticket.entity.js';
 import { Product } from '../../products/entities/product.entity.js';
+import { Order } from '../../orders/entities/order.entity.js';
 
 export enum UserRole {
   CUSTOMER = 'customer',
@@ -82,6 +83,9 @@ export class User {
     },
   })
   basket: Product[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 
   @CreateDateColumn()
   createdAt: Date;

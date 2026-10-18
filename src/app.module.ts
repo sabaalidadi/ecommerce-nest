@@ -9,10 +9,12 @@ import { CategoriesModule } from './categories/categories.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { BookmarksModule } from './bookmarks/bookmarks.module.js';
 import { BasketModule } from './basket/basket.module.js';
+import { OrdersModule } from './orders/orders.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 
 @Module({
   imports: [
-       ConfigModule.forRoot({
+    ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
@@ -27,7 +29,7 @@ import { BasketModule } from './basket/basket.module.js';
         username: configService.get<string>('DB_USERNAME', 'root'),
         password: configService.get<string>('DB_PASSWORD', ''),
         database: configService.get<string>('DB_DATABASE', 'shop_db'),
-        autoLoadEntities: true, 
+        autoLoadEntities: true,
         synchronize: true,
         logging: true,
       }),
@@ -41,6 +43,8 @@ import { BasketModule } from './basket/basket.module.js';
     ProductsModule,
     BookmarksModule,
     BasketModule,
+    OrdersModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {}

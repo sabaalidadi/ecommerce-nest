@@ -6,8 +6,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
+  type Relation, // 👈 اضافه شد
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity.js';
+import type { User } from '../../users/entities/user.entity.js'; // 👈 به صورت type ایمپورت شود
+import type { Order } from '../../orders/entities/order.entity.js'; // 👈 به صورت type ایمپورت شود
 
 @Entity('addresses')
 export class Address {
@@ -38,12 +41,15 @@ export class Address {
   @Column({ default: false })
   isDefault: boolean;
 
-  @ManyToOne(() => User, (user) => user.addresses, { onDelete: 'CASCADE' })
+  @ManyToOne('User', (user: User) => user.addresses, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: Relation<User>; // 👈 تغییر از User به Relation<User>
 
   @Column()
   userId: string;
+
+  @OneToMany('Order', (order: Order) => order.address)
+  orders: Relation<Order[]>; // 👈 تغییر از Order[] به Relation<Order[]>
 
   @CreateDateColumn()
   createdAt: Date;
