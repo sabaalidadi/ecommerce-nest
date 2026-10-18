@@ -11,7 +11,6 @@ import {
 import { Category } from '../../categories/entities/category.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 
-
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
@@ -45,6 +44,9 @@ export class Product {
 
   @ManyToMany(() => User, (user) => user.bookmarks)
   bookmarkedBy: User[];
+
+  @ManyToMany(() => User, (user) => user.basket)
+  inBaskets: User[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -7,7 +7,7 @@ import {
   OneToMany,
   Relation,
   ManyToMany,
-  JoinTable
+  JoinTable,
 } from 'typeorm';
 import { Address } from '../../addresses/entities/address.entity.js';
 import { Ticket } from '../../tickets/entities/ticket.entity.js';
@@ -67,6 +67,21 @@ export class User {
   })
   bookmarks: Product[];
 
+  @ManyToMany(() => Product, (product) => product.inBaskets, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable({
+    name: 'basket_items',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'product_id',
+      referencedColumnName: 'id',
+    },
+  })
+  basket: Product[];
 
   @CreateDateColumn()
   createdAt: Date;
