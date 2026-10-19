@@ -11,6 +11,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module.js';
 import { BasketModule } from './basket/basket.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { RateLimitModule } from './rate-limit/rate-limit.module.js';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { PaymentsModule } from './payments/payments.module.js';
     BasketModule,
     OrdersModule,
     PaymentsModule,
+    RateLimitModule
   ],
 })
 export class AppModule {}
