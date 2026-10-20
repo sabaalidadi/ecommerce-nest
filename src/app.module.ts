@@ -12,6 +12,8 @@ import { BasketModule } from './basket/basket.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { RateLimitModule } from './rate-limit/rate-limit.module.js';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { RateLimitModule } from './rate-limit/rate-limit.module.js';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -35,7 +38,7 @@ import { RateLimitModule } from './rate-limit/rate-limit.module.js';
         logging: true,
       }),
     }),
-
+    AuthModule,
     UsersModule,
     AuthModule,
     AddressesModule,
@@ -48,5 +51,13 @@ import { RateLimitModule } from './rate-limit/rate-limit.module.js';
     PaymentsModule,
     RateLimitModule
   ],
+  providers: [
+    // گارد احراز هویت سراسری:
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
+  
 })
 export class AppModule {}

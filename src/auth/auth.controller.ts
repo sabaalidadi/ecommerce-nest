@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { UsersService } from '../users/users.service.js';
+import { Public } from './decorators/public.decorator.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -28,6 +29,7 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.authService.register(registerDto);
@@ -38,6 +40,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
@@ -57,6 +60,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('refresh')
   async refresh(
     @Req() request: Request,
@@ -84,6 +88,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('logout')
   logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('accessToken', this.cookieOptions());
@@ -94,7 +99,6 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() request: AuthenticatedRequest) {
     return this.usersService.findOne(request.user.sub);
