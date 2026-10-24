@@ -24,6 +24,8 @@ export enum AppPermission {
 
   // Payments
   PAYMENT_PROCESS = 'payment.process',
+
+  USERS_MANAGE = 'users.manage',
 }
 
 // تعریف دسترسی‌های هر نقش
@@ -46,8 +48,5 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     AppPermission.PAYMENT_PROCESS,
   ],
 
-  support: [
-    AppPermission.ORDER_READ_ALL,
-    AppPermission.ORDER_UPDATE_STATUS,
-  ],
+  support: [AppPermission.ORDER_READ_ALL, AppPermission.ORDER_UPDATE_STATUS],
 };

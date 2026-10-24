@@ -5,10 +5,9 @@ import { RateLimit } from './entities/rate-limit.entity.js';
 
 @Injectable()
 export class RateLimitService {
-  // تنظیمات پیش‌فرض (قابل شخصی‌سازی)
-  private readonly MAX_REQUESTS = 10; // حداکثر مجاز در هر پنجره
+  private readonly MAX_REQUESTS = 100; // حداکثر مجاز در هر پنجره
   private readonly WINDOW_MS = 60 * 1000; // ۶۰ ثانیه به میلی‌ثانیه
-  private readonly BLOCK_DURATION_MS = 15 * 60 * 1000; // مسدودی به مدت ۱۵ دقیقه
+  private readonly BLOCK_DURATION_MS = 1 * 60 * 1000; // مسدودی به مدت ۱ دقیقه
 
   constructor(
     @InjectRepository(RateLimit)
@@ -17,6 +16,7 @@ export class RateLimitService {
 
   async checkRateLimit(ip: string): Promise<boolean> {
     const now = new Date();
+    const nowMs = now.getTime(); // زمان فعلی به صورت میلی‌ثانیه
 
     let record = await this.rateLimitRepository.findOne({ where: { ip } });
 
@@ -35,8 +35,13 @@ export class RateLimitService {
 
     // بررسی آیا مسدود است یا خیر
     if (record.isBlocked) {
+      // تبدیل تاریخ پایگاه داده به میلی‌ثانیه برای مقایسه دقیق
+      const blockedUntilMs = record.blockedUntil 
+        ? new Date(record.blockedUntil).getTime() 
+        : 0;
+
       // اگر مدت مسدودیت تمام شده، رفع بلاک شود
-      if (record.blockedUntil && now > record.blockedUntil) {
+      if (blockedUntilMs && nowMs > blockedUntilMs) {
         record.isBlocked = false;
         record.blockedUntil = null;
         record.requestCount = 1;
@@ -56,7 +61,10 @@ export class RateLimitService {
     }
 
     // محاسبه زمان سپری شده از آخرین درخواست
-    const elapsedMs = now.getTime() - new Date(record.lastRequestAt).getTime();
+    const lastRequestMs = record.lastRequestAt 
+      ? new Date(record.lastRequestAt).getTime() 
+      : nowMs;
+    const elapsedMs = nowMs - lastRequestMs;
 
     if (elapsedMs > this.WINDOW_MS) {
       // پنجره زمانی گذشته است؛ شمارنده از نو شروع می‌شود
@@ -70,7 +78,8 @@ export class RateLimitService {
       // اگر سقف را رد کرد، مسدود شود
       if (record.requestCount > this.MAX_REQUESTS) {
         record.isBlocked = true;
-        record.blockedUntil = new Date(now.getTime() + this.BLOCK_DURATION_MS);
+        // ثبت زمان مسدودی به صورت Date جدید
+        record.blockedUntil = new Date(nowMs + this.BLOCK_DURATION_MS);
         await this.rateLimitRepository.save(record);
 
         throw new HttpException(

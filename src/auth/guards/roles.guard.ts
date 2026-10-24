@@ -18,6 +18,12 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
+
+    console.log('ROLES GUARD:', {
+  requiredRoles,
+  userRoles: context.switchToHttp().getRequest().user?.roles,
+});
+
     // اگر برای این روت هیچ نقشی تعریف نشده بود، دسترسی مجاز است
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
