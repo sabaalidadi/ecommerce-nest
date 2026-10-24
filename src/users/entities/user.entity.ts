@@ -13,11 +13,15 @@ import { Address } from '../../addresses/entities/address.entity.js';
 import { Ticket } from '../../tickets/entities/ticket.entity.js';
 import { Product } from '../../products/entities/product.entity.js';
 import { Order } from '../../orders/entities/order.entity.js';
+import { Role } from '../../roles/entities/role.entity.js';
 
 export enum UserRole {
   CUSTOMER = 'customer',
   ADMIN = 'admin',
+  SELLER = 'seller',
+  SUPPORT = 'support',
 }
+
 
 @Entity('users')
 export class User {
@@ -83,6 +87,15 @@ export class User {
     },
   })
   basket: Product[];
+
+  @ManyToMany(() => Role, (role) => role.users)
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'roleId', referencedColumnName: 'id' },
+  })
+  roles: Role[];
+
 
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];

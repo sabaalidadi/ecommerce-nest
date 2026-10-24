@@ -1,7 +1,8 @@
-import { UserRole } from '../../users/entities/user.entity.js';
 
 export interface JwtPayload {
-  sub: string;
+  sub: string;           
   phoneNumber: string;
-  role: UserRole;
+  roles: string[];       // e.g. ['admin']
+  permissions: string[]; // e.g. ['product:create', 'product:update', ...]
 }
+

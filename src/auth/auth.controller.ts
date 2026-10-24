@@ -5,21 +5,21 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
-import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { UsersService } from '../users/users.service.js';
 import { Public } from './decorators/public.decorator.js';
+import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    sub: string;
-  };
+interface AuthenticatedUser {
+  sub: string;
+  phoneNumber: string;
+  roles: string[];
+  permissions: string[];
 }
 
 @Controller('auth')
@@ -99,11 +99,17 @@ export class AuthController {
     };
   }
 
-  @Get('me')
-  async me(@Req() request: AuthenticatedRequest) {
-    return this.usersService.findOne(request.user.sub);
-  }
+  // پروفایل کاربر لاگین شده به همراه نقش‌ها و پرمیشن‌ها (مناسب برای فرانت‌اند)
+@Get('me')
+async me(@CurrentUser() user: AuthenticatedUser) {
+  const userProfile = await this.usersService.findOne(user.sub);
 
+  return {
+    ...userProfile,
+    roles: user.roles,
+    permissions: user.permissions,
+  };
+}
   private setAuthCookies(
     response: Response,
     accessToken: string,

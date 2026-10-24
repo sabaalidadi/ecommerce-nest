@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '../users/users.service.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { User } from '../users/entities/user.entity.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { JwtPayload } from './types/jwt-payload.type.js';
@@ -21,10 +21,8 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    return this.usersService.create({
-      ...registerDto,
-      role: UserRole.CUSTOMER,
-    });
+    // ایجاد کاربر جدید (نقش پیش‌فرض customer داخل UsersService مدیریت می‌شود)
+    return this.usersService.create(registerDto);
   }
 
   async login(loginDto: LoginDto) {
@@ -105,29 +103,58 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(user: {
-    id: string;
-    phoneNumber: string;
-    role: UserRole;
-  }) {
+  /**
+   * استخراج پرمیشن‌های یکتا از روی تمام نقش‌های کاربر
+   */
+  private extractUserPermissions(user: User): {
+    roles: string[];
+    permissions: string[];
+  } {
+    const roles: string[] = [];
+    const permissionSet = new Set<string>();
+
+    if (user.roles && user.roles.length > 0) {
+      for (const role of user.roles) {
+        roles.push(role.name);
+        if (role.permissions && role.permissions.length > 0) {
+          for (const perm of role.permissions) {
+            permissionSet.add(perm.name);
+          }
+        }
+      }
+    }
+
+    return {
+      roles,
+      permissions: Array.from(permissionSet),
+    };
+  }
+
+  /**
+   * تولید توکن‌های Access و Refresh شامل پرمیشن‌ها و نقش‌ها
+   */
+  private async generateTokens(user: Omit<User, 'password'> | User) {
+    const { roles, permissions } = this.extractUserPermissions(user as User);
+
     const payload: JwtPayload = {
       sub: user.id,
       phoneNumber: user.phoneNumber,
-      role: user.role,
+      roles,
+      permissions,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow<string>(
         'JWT_ACCESS_SECRET',
       ),
-      expiresIn: 60 * 15,
+      expiresIn: 60 * 15, // 15 دقیقه
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow<string>(
         'JWT_REFRESH_SECRET',
       ),
-      expiresIn: 60 * 60 * 24 * 7,
+      expiresIn: 60 * 60 * 24 * 7, // 7 روز
     });
 
     return {
@@ -135,4 +162,5 @@ export class AuthService {
       refreshToken,
     };
   }
+
 }

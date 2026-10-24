@@ -14,6 +14,13 @@ import { PaymentsModule } from './payments/payments.module.js';
 import { RateLimitModule } from './rate-limit/rate-limit.module.js';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from './auth/guards/roles.guard.js';
+import { RolesModule } from './roles/roles.module.js';
+import { PermissionsGuard } from './common/guards/permissions.guard.js';
+
+// ۱. انتیتی‌های مورد نیاز PermissionsGuard را ایمپورت کنید:
+import { User } from './users/entities/user.entity.js';
+import { Role } from './roles/entities/role.entity.js';
 
 @Module({
   imports: [
@@ -21,7 +28,6 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -38,9 +44,12 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
         logging: true,
       }),
     }),
+
+    // ۲. ثبت انتیتی‌ها برای این که APP_GUARD به ریپازیتوری آن‌ها دسترسی داشته باشد:
+    TypeOrmModule.forFeature([User, Role]),
+
     AuthModule,
     UsersModule,
-    AuthModule,
     AddressesModule,
     TicketsModule,
     CategoriesModule,
@@ -49,15 +58,22 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
     BasketModule,
     OrdersModule,
     PaymentsModule,
-    RateLimitModule
+    RateLimitModule,
+    RolesModule,
   ],
   providers: [
-    // گارد احراز هویت سراسری:
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
   ],
-  
 })
 export class AppModule {}

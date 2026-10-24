@@ -72,6 +72,11 @@ export class UsersService {
   async findOne(id: string): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.findOne({
       where: { id },
+      relations: {
+        roles: {
+          permissions: true,
+        },
+      },
     });
 
     if (!user) {
@@ -81,6 +86,7 @@ export class UsersService {
     const { password, ...result } = user;
     return result;
   }
+
 
 async update(id: string, updateUserDto: UpdateUserDto) {
   const user = await this.userRepository.findOne({
@@ -114,11 +120,14 @@ async update(id: string, updateUserDto: UpdateUserDto) {
   }
 
   async findByPhoneForAuth(phoneNumber: string): Promise<User | null> {
-  return this.userRepository
-    .createQueryBuilder('user')
-    .addSelect('user.password')
-    .where('user.phoneNumber = :phoneNumber', { phoneNumber })
-    .getOne();
-}
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('roles.permissions', 'permissions')
+      .where('user.phoneNumber = :phoneNumber', { phoneNumber })
+      .getOne();
+  }
+
 
 }
