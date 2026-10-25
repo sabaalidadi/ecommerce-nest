@@ -1,3 +1,4 @@
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,8 +7,11 @@ import {
   UpdateDateColumn,
   ManyToMany,
   JoinTable,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
+
 import { Category } from '../../categories/entities/category.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 
@@ -19,7 +23,12 @@ export class Product {
   @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 0,
+    default: 0,
+  })
   price: number;
 
   @Column({ type: 'text' })
@@ -28,7 +37,26 @@ export class Product {
   @Column({ type: 'int', default: 0 })
   stock: number;
 
-  @ManyToMany(() => Category, (category) => category.products)
+  // مالک محصول
+  @ManyToOne(
+    () => User,
+    (user) => user.products,
+    {
+      nullable: false,
+      onDelete: 'RESTRICT',
+    },
+  )
+  @JoinColumn({
+    name: 'owner_id',
+    referencedColumnName: 'id',
+  })
+  owner: Relation<User>;
+
+  // دسته‌بندی‌های محصول
+  @ManyToMany(
+    () => Category,
+    (category) => category.products,
+  )
   @JoinTable({
     name: 'product_categories',
     joinColumn: {
@@ -40,13 +68,21 @@ export class Product {
       referencedColumnName: 'id',
     },
   })
-  categories: Category[];
+  categories: Relation<Category[]>;
 
-  @ManyToMany(() => User, (user) => user.bookmarks)
-  bookmarkedBy: User[];
+  // کاربرانی که محصول را ذخیره کرده‌اند
+  @ManyToMany(
+    () => User,
+    (user) => user.bookmarks,
+  )
+  bookmarkedBy: Relation<User[]>;
 
-  @ManyToMany(() => User, (user) => user.basket)
-  inBaskets: User[];
+  // کاربرانی که محصول را به سبد خرید اضافه کرده‌اند
+  @ManyToMany(
+    () => User,
+    (user) => user.basket,
+  )
+  inBaskets: Relation<User[]>;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

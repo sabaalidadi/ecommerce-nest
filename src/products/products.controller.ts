@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  Req,
 } from '@nestjs/common';
+
 import { ProductsService } from './products.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
@@ -17,43 +19,67 @@ import { AppPermission } from '../roles/constants/permissions.constant.js';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+  ) {}
 
-  // 🔒 نیاز به پرمیشن ایجاد محصول (admin, seller)
   @Post()
   @RequirePermissions(AppPermission.PRODUCT_CREATE)
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @Req() request: any,
+  ) {
+    return this.productsService.create(
+      createProductDto,
+      request.user.sub,
+    );
   }
 
-  // 🌐 عمومی: همه کاربران و مهمان‌ها
   @Public()
   @Get()
   findAll() {
     return this.productsService.findAll();
   }
 
-  // 🌐 عمومی: همه کاربران و مهمان‌ها
   @Public()
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.productsService.findOne(id);
   }
 
-  // 🔒 نیاز به پرمیشن ویرایش محصول (admin, seller)
   @Patch(':id')
   @RequirePermissions(AppPermission.PRODUCT_UPDATE)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProductDto: UpdateProductDto,
+    @Req() request: any,
   ) {
-    return this.productsService.update(id, updateProductDto);
+    const roles: string[] = request.user.roles ?? [];
+    const isAdmin = roles.includes('admin');
+
+    return this.productsService.update(
+      id,
+      updateProductDto,
+      request.user.sub,
+      isAdmin,
+    );
   }
 
-  // 🔒 نیاز به پرمیشن حذف محصول (admin, seller)
   @Delete(':id')
   @RequirePermissions(AppPermission.PRODUCT_DELETE)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productsService.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: any,
+  ) {
+    const roles: string[] = request.user.roles ?? [];
+    const isAdmin = roles.includes('admin');
+
+    return this.productsService.remove(
+      id,
+      request.user.sub,
+      isAdmin,
+    );
   }
 }

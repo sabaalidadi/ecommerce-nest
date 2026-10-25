@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Relation,
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+
+import type { Relation } from 'typeorm';
+
 import { Address } from '../../addresses/entities/address.entity.js';
 import { Ticket } from '../../tickets/entities/ticket.entity.js';
 import { Product } from '../../products/entities/product.entity.js';
@@ -22,13 +24,12 @@ export enum UserRole {
   SUPPORT = 'support',
 }
 
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // شماره موبایل: اجباری، یکتا و شناسه اصلی کاربر
+  // شماره موبایل
   @Column({ unique: true, length: 11 })
   phoneNumber: string;
 
@@ -38,7 +39,7 @@ export class User {
   @Column({ nullable: true })
   fullName: string;
 
-  // ایمیل اختیاری و در صورت وجود یکتا
+  // ایمیل اختیاری
   @Column({ unique: true, nullable: true })
   email: string;
 
@@ -52,13 +53,23 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  // آدرس‌های کاربر
   @OneToMany('Address', (address: Address) => address.user)
-  addresses: Relation<Address>[];
+  addresses: Relation<Address[]>;
 
+  // تیکت‌های کاربر
   @OneToMany(() => Ticket, (ticket) => ticket.user)
-  tickets: Ticket[];
+  tickets: Relation<Ticket[]>;
 
-  @ManyToMany(() => Product, (product) => product.bookmarkedBy)
+  // محصولاتی که کاربر مالک آن‌هاست
+  @OneToMany(() => Product, (product) => product.owner)
+  products: Relation<Product[]>;
+
+  // محصولات ذخیره‌شده
+  @ManyToMany(
+    () => Product,
+    (product) => product.bookmarkedBy,
+  )
   @JoinTable({
     name: 'bookmarks',
     joinColumn: {
@@ -70,11 +81,13 @@ export class User {
       referencedColumnName: 'id',
     },
   })
-  bookmarks: Product[];
+  bookmarks: Relation<Product[]>;
 
-  @ManyToMany(() => Product, (product) => product.inBaskets, {
-    onDelete: 'CASCADE',
-  })
+  // محصولات سبد خرید
+  @ManyToMany(
+    () => Product,
+    (product) => product.inBaskets,
+  )
   @JoinTable({
     name: 'basket_items',
     joinColumn: {
@@ -86,19 +99,26 @@ export class User {
       referencedColumnName: 'id',
     },
   })
-  basket: Product[];
+  basket: Relation<Product[]>;
 
+  // نقش‌های کاربر
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable({
     name: 'user_roles',
-    joinColumn: { name: 'userId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'roleId', referencedColumnName: 'id' },
+    joinColumn: {
+      name: 'userId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'roleId',
+      referencedColumnName: 'id',
+    },
   })
-  roles: Role[];
+  roles: Relation<Role[]>;
 
-
+  // سفارش‌های کاربر
   @OneToMany(() => Order, (order) => order.user)
-  orders: Order[];
+  orders: Relation<Order[]>;
 
   @CreateDateColumn()
   createdAt: Date;
