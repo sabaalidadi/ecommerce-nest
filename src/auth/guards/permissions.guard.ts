@@ -34,11 +34,6 @@ export class PermissionsGuard implements CanActivate {
 
     const user = request.user;
 
-
-
-console.log('USER FROM JWT:', user);
-console.log('REQUIRED PERMISSIONS:', requiredPermissions);
-
     if (!user) {
       throw new ForbiddenException('اطلاعات کاربر یافت نشد');
     }

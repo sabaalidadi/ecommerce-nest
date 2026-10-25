@@ -6,13 +6,17 @@ import {
   Delete,
   Body,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 
 import { RolesService } from './roles.service.js';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator.js';
 import { AppPermission } from './constants/permissions.constant.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { PermissionsGuard } from '../common/guards/permissions.guard.js';
 
 @Controller('roles')
+@UseGuards(JwtAuthGuard, PermissionsGuard) 
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
