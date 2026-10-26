@@ -10,6 +10,8 @@ import { OrderItem } from './entities/order-item.entity.js';
 import { User } from '../users/entities/user.entity.js';
 import { Address } from '../addresses/entities/address.entity.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OrderCreatedEvent } from './events/order-created.event.js';
 
 @Injectable()
 export class OrdersService {
@@ -22,13 +24,13 @@ export class OrdersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   // ۱. ثبت سفارش اولیه بر اساس سبد خرید فعلی کاربر
-  async create(createOrderDto: CreateOrderDto) {
+async create(createOrderDto: CreateOrderDto) {
     const { userId, addressId, discountCode } = createOrderDto;
 
-    // ۱. بررسی کاربر و لود کردن سبد خرید او
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: {
@@ -46,7 +48,6 @@ export class OrdersService {
       );
     }
 
-    // ۲. بررسی آدرس و مطمئن شدن از اینکه آدرس متعلق به همین کاربر است
     const address = await this.addressRepository.findOne({
       where: { id: addressId, userId },
     });
@@ -57,13 +58,11 @@ export class OrdersService {
       );
     }
 
-    // ۳. محاسبه مجموع مبلغ سبد خرید
     const totalPrice = user.basket.reduce(
       (sum, item) => sum + Number(item.price),
       0,
     );
 
-    // ۴. ساخت رکورد سفارش
     const newOrder = this.orderRepository.create({
       userId,
       addressId,
@@ -73,7 +72,6 @@ export class OrdersService {
 
     const savedOrder = await this.orderRepository.save(newOrder);
 
-    // ۵. ثبت اقلام سفارش در جدول order_items با قیمت لحظه خرید
     const orderItems = user.basket.map((product) => ({
       orderId: savedOrder.id,
       productId: product.id,
@@ -82,15 +80,19 @@ export class OrdersService {
 
     await this.orderItemRepository.save(orderItems as any);
 
-    // ۶. خالی کردن سبد خرید کاربر
     await this.userRepository
       .createQueryBuilder()
       .relation(User, 'basket')
       .of(userId)
       .remove(user.basket.map((p) => p.id));
 
-    // ۷. برگرداندن سفارش همراه با اقلام و مشخصات محصولات
-    return await this.findOne(savedOrder.id);
+    // دریافت کامل سفارش به همراه اقلام و مشخصات کاربر و آدرس
+    const completeOrder = await this.findOne(savedOrder.id);
+
+    // ۴. انتشار رویداد برای صدور فاکتور توسط Listener
+    this.eventEmitter.emit('order.created', new OrderCreatedEvent(completeOrder));
+
+    return completeOrder;
   }
 
   // ۲. دریافت سفارش‌های یک کاربر

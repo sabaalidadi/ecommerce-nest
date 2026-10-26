@@ -6,11 +6,12 @@ import { Order } from './entities/order.entity.js';
 import { User } from '../users/entities/user.entity.js';
 import { Address } from '../addresses/entities/address.entity.js';
 import { OrderItem } from './entities/order-item.entity.js';
+import { OrderInvoiceListener } from './listeners/order-invoice.listener.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Order,OrderItem , User, Address])],
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService ,OrderInvoiceListener],
   exports: [OrdersService],
 })
 export class OrdersModule {}

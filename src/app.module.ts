@@ -17,16 +17,28 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from './auth/guards/roles.guard.js';
 import { RolesModule } from './roles/roles.module.js';
 import { PermissionsGuard } from './common/guards/permissions.guard.js';
+import { BullModule } from '@nestjs/bullmq';
 
 // ۱. انتیتی‌های مورد نیاز PermissionsGuard را ایمپورت کنید:
 import { User } from './users/entities/user.entity.js';
 import { Role } from './roles/entities/role.entity.js';
+import { SmsModule } from './sms/sms.module.js';
+
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+     EventEmitterModule.forRoot(),
+
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
     }),
 
     TypeOrmModule.forRootAsync({
@@ -60,6 +72,7 @@ import { Role } from './roles/entities/role.entity.js';
     PaymentsModule,
     RateLimitModule,
     RolesModule,
+    SmsModule,
   ],
   providers: [
     {
