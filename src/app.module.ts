@@ -25,6 +25,7 @@ import { Role } from './roles/entities/role.entity.js';
 import { SmsModule } from './sms/sms.module.js';
 
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { WeatherModule } from './weather/weather.module.js';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     RateLimitModule,
     RolesModule,
     SmsModule,
+    WeatherModule,
   ],
   providers: [
     {

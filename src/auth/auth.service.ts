@@ -70,9 +70,7 @@ export class AuthService {
       payload = await this.jwtService.verifyAsync<JwtPayload>(
         refreshToken,
         {
-          secret: this.configService.getOrThrow<string>(
-            'JWT_REFRESH_SECRET',
-          ),
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         },
       );
     } catch {
@@ -144,16 +142,12 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow<string>(
-        'JWT_ACCESS_SECRET',
-      ),
+      secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
       expiresIn: 60 * 15, // 15 دقیقه
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow<string>(
-        'JWT_REFRESH_SECRET',
-      ),
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: 60 * 60 * 24 * 7, // 7 روز
     });
 

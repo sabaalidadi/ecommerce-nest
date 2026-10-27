@@ -5,6 +5,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
@@ -66,12 +67,11 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    // گرفتن رفرش توکن از کوکی (یا request.body / headers بسته به پروژه شما)
     const refreshToken = request.cookies?.refreshToken;
 
     if (!refreshToken) {
-      return {
-        message: 'توکن refresh ارسال نشده است',
-      };
+      throw new UnauthorizedException('توکن refresh ارسال نشده است');
     }
 
     const result = await this.authService.refresh(refreshToken);
@@ -87,6 +87,7 @@ export class AuthController {
       user: result.user,
     };
   }
+
 
   @Public()
   @Post('logout')
